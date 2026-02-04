@@ -2,22 +2,55 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chat Wolkvox - Pruebas</title>
-
-  <!-- Opcional pero recomendado -->
+  <title>Chat Wolkvox - Auto Reset</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-
 <body>
 
-<!-- START CHATBOX WOLKVOX -->
+<script type="text/javascript">
+  // 1. LIMPIEZA INICIAL (Por seguridad al abrir la pestaña)
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // 2. VIGILANTE (MutationObserver)
+  // Este script observa si el chat se cierra para limpiar los datos
+  const observer = new MutationObserver((mutations) => {
+    // Buscamos si el contenedor del chat de Wolkvox ha sido modificado o cerrado
+    // Wolkvox suele ocultar su div principal al dar click en la X
+    const chatContainer = document.querySelector('.wolkvox-chat-container') || document.body; 
+    
+    // Si detectamos que el chat volvió al estado inicial (formulario vacío)
+    // o si el usuario cerró la sesión dentro del widget:
+    mutations.forEach((mutation) => {
+      // Si el chat se cierra, forzamos un reset silencioso
+      if (mutation.type === 'childList') {
+        // Aquí puedes agregar lógica específica si conoces el ID del botón X
+        // Por ahora, forzamos limpieza preventiva constante
+        localStorage.clear();
+      }
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // 3. TRUCO DE RECARGA TRAS FINALIZACIÓN
+  // Escuchamos mensajes que el chat pueda enviar al padre (tu HTML)
+  window.addEventListener("message", function(event) {
+    // Muchos widgets envían un mensaje tipo "chat-closed" o similar
+    // Si detectamos cualquier señal de finalización, limpiamos
+    if (event.data && (event.data.type === 'close' || event.data === 'closeChat')) {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.reload(); // Recarga para asegurar nuevo caso
+    }
+  }, false);
+</script>
+
 <script
   id="prodId"
   type="text/javascript"
   src="https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI="
   async>
 </script>
-<!-- END CHATBOX WOLKVOX -->
-
 </body>
 </html>
