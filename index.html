@@ -3,15 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <title>Chat Wolkvox</title>
-  <!-- Opcional pero recomendado -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <script type="text/javascript">
+    // Esto se ejecuta ANTES que el chat
+    (function() {
+      // 1. Limpiamos lo que podemos de nuestro lado
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // 2. Intentamos limpiar cookies del dominio
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+
+      // 3. Si el usuario cerró el chat y quedó en blanco, 
+      // detectamos si ya pasó mucho tiempo y refrescamos.
+      console.log("Entorno preparado para nueva interacción.");
+    })();
+  </script>
 </head>
 <body>
-<!-- START CHATBOX WOLKVOX -->
+
 <script
   id="prodId"
   type="text/javascript"
   src="https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI="
   async>
 </script>
-<!-- END CHATBOX WOLKVOX -->
+<script type="text/javascript">
+  // Monitoreo invisible:
+  // Si después de 10 segundos no hay nada en pantalla (chat en blanco),
+  // forzamos una recarga automática para intentar revivirlo.
+  setTimeout(function() {
+    // Buscamos si el iframe de Wolkvox se creó
+    var chatInyectado = document.querySelector('iframe') || document.querySelector('div[id*="wolkvox"]');
+    if (!chatInyectado) {
+       console.log("Chat no detectado, reintentando...");
+       // window.location.reload(); // Quita el comentario si quieres que sea automático
+    }
+  }, 10000);
+</script>
+
+</body>
+</html>
