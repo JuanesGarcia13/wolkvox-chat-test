@@ -2,53 +2,44 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chat Wolkvox</title>
+  <title>Chat Wolkvox - Flujo Continuo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <script type="text/javascript">
-    // 1. FUNCIÓN DE LIMPIEZA PROFUNDA
-    function nukeChatSession() {
-        // Limpia LocalStorage y SessionStorage
-        localStorage.clear();
-        sessionStorage.clear();
-
-        // Limpia TODAS las cookies posibles para este dominio
-        var cookies = document.cookie.split(";");
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = cookies[i];
-            var eqPos = cookie.indexOf("=");
-            var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-            // Intenta borrar también en subdominios si existieran
-            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
-        }
-    }
-
-    // Ejecutar al cargar la página
-    nukeChatSession();
-
-    // 2. DETECTOR DE CIERRE (Vigilante de la "X")
-    // Cada 2 segundos revisamos si el chat se cerró para limpiar de nuevo
-    setInterval(function() {
-        // Wolkvox suele usar un div o un iframe. 
-        // Si el usuario da click en X, el estado interno cambia.
-        // Forzamos limpieza en segundo plano constantemente para que la próxima 
-        // vez que cargue (o refresque) no haya basura.
-        nukeChatSession();
-    }, 2000);
-  </script>
 </head>
 <body>
 
 <script type="text/javascript">
-    // 3. CARGA DINÁMICA ANTI-CACHÉ
-    // Agregamos un token aleatorio a la URL del script para que Edge no lo reconozca
+    // 1. Limpieza de lo que sí podemos controlar (nuestro host)
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 2. Función para recargar la página si el chat se queda "colgado"
+    // Si el chat no carga nada en 5 segundos, refrescamos automáticamente
+    let checkChatLoad = setTimeout(function() {
+        console.log("Detectada posible pantalla en blanco, refrescando...");
+        window.location.reload();
+    }, 8000); // 8 segundos de margen
+
+    window.addEventListener("message", function(event) {
+        // Si el chat nos envía cualquier señal de que está vivo, cancelamos el refresh automático
+        if (event.origin.includes("wolkvox")) {
+            clearTimeout(checkChatLoad);
+            
+            // Si el mensaje es de "cierre", refrescamos para el siguiente caso
+            if (event.data === 'close' || event.data.type === 'close') {
+                window.location.reload();
+            }
+        }
+    }, false);
+</script>
+
+<script type="text/javascript">
     (function() {
         var script = document.createElement('script');
         script.id = "prodId";
         script.type = "text/javascript";
-        // El parámetro &_ rándom obliga a Wolkvox a generar una sesión limpia
-        script.src = "https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI=" + "&_=" + Math.random();
+        // Agregamos un ID de sesión único en la URL para intentar saltar el timeout del servidor
+        var sessionBuster = 'sess_' + new Date().getTime();
+        script.src = "https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI=" + "&session=" + sessionBuster;
         script.async = true;
         document.body.appendChild(script);
     })();
