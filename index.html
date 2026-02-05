@@ -1,48 +1,39 @@
 <!DOCTYPE html>
+
 <html lang="es">
+
 <head>
+
   <meta charset="UTF-8">
-  <title>Chat Wolkvox - Flujo Continuo</title>
+
+  <title>Chat Wolkvox</title>
+
+
+
+  <!-- Opcional pero recomendado -->
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 </head>
+
+
+
 <body>
 
-<script type="text/javascript">
-    // 1. Limpieza de lo que sí podemos controlar (nuestro host)
-    localStorage.clear();
-    sessionStorage.clear();
 
-    // 2. Función para recargar la página si el chat se queda "colgado"
-    // Si el chat no carga nada en 5 segundos, refrescamos automáticamente
-    let checkChatLoad = setTimeout(function() {
-        console.log("Detectada posible pantalla en blanco, refrescando...");
-        window.location.reload();
-    }, 8000); // 8 segundos de margen
 
-    window.addEventListener("message", function(event) {
-        // Si el chat nos envía cualquier señal de que está vivo, cancelamos el refresh automático
-        if (event.origin.includes("wolkvox")) {
-            clearTimeout(checkChatLoad);
-            
-            // Si el mensaje es de "cierre", refrescamos para el siguiente caso
-            if (event.data === 'close' || event.data.type === 'close') {
-                window.location.reload();
-            }
-        }
-    }, false);
+<!-- START CHATBOX WOLKVOX -->
+
+<script
+
+  id="prodId"
+
+  type="text/javascript"
+
+  src="https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI="
+
+  async>
+
 </script>
 
-<script type="text/javascript">
-    (function() {
-        var script = document.createElement('script');
-        script.id = "prodId";
-        script.type = "text/javascript";
-        // Agregamos un ID de sesión único en la URL para intentar saltar el timeout del servidor
-        var sessionBuster = 'sess_' + new Date().getTime();
-        script.src = "https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI=" + "&session=" + sessionBuster;
-        script.async = true;
-        document.body.appendChild(script);
-    })();
-</script>
-</body>
-</html>
+<!-- END CHATBOX WOLKVOX -->
