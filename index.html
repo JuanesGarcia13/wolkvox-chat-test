@@ -2,55 +2,56 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chat Wolkvox - Auto Reset</title>
+  <title>Chat Wolkvox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <script type="text/javascript">
+    // 1. FUNCIÓN DE LIMPIEZA PROFUNDA
+    function nukeChatSession() {
+        // Limpia LocalStorage y SessionStorage
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Limpia TODAS las cookies posibles para este dominio
+        var cookies = document.cookie.split(";");
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i];
+            var eqPos = cookie.indexOf("=");
+            var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+            // Intenta borrar también en subdominios si existieran
+            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
+        }
+    }
+
+    // Ejecutar al cargar la página
+    nukeChatSession();
+
+    // 2. DETECTOR DE CIERRE (Vigilante de la "X")
+    // Cada 2 segundos revisamos si el chat se cerró para limpiar de nuevo
+    setInterval(function() {
+        // Wolkvox suele usar un div o un iframe. 
+        // Si el usuario da click en X, el estado interno cambia.
+        // Forzamos limpieza en segundo plano constantemente para que la próxima 
+        // vez que cargue (o refresque) no haya basura.
+        nukeChatSession();
+    }, 2000);
+  </script>
 </head>
 <body>
 
 <script type="text/javascript">
-  // 1. LIMPIEZA INICIAL (Por seguridad al abrir la pestaña)
-  localStorage.clear();
-  sessionStorage.clear();
-
-  // 2. VIGILANTE (MutationObserver)
-  // Este script observa si el chat se cierra para limpiar los datos
-  const observer = new MutationObserver((mutations) => {
-    // Buscamos si el contenedor del chat de Wolkvox ha sido modificado o cerrado
-    // Wolkvox suele ocultar su div principal al dar click en la X
-    const chatContainer = document.querySelector('.wolkvox-chat-container') || document.body; 
-    
-    // Si detectamos que el chat volvió al estado inicial (formulario vacío)
-    // o si el usuario cerró la sesión dentro del widget:
-    mutations.forEach((mutation) => {
-      // Si el chat se cierra, forzamos un reset silencioso
-      if (mutation.type === 'childList') {
-        // Aquí puedes agregar lógica específica si conoces el ID del botón X
-        // Por ahora, forzamos limpieza preventiva constante
-        localStorage.clear();
-      }
-    });
-  });
-
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // 3. TRUCO DE RECARGA TRAS FINALIZACIÓN
-  // Escuchamos mensajes que el chat pueda enviar al padre (tu HTML)
-  window.addEventListener("message", function(event) {
-    // Muchos widgets envían un mensaje tipo "chat-closed" o similar
-    // Si detectamos cualquier señal de finalización, limpiamos
-    if (event.data && (event.data.type === 'close' || event.data === 'closeChat')) {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.reload(); // Recarga para asegurar nuevo caso
-    }
-  }, false);
-</script>
-
-<script
-  id="prodId"
-  type="text/javascript"
-  src="https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI="
-  async>
+    // 3. CARGA DINÁMICA ANTI-CACHÉ
+    // Agregamos un token aleatorio a la URL del script para que Edge no lo reconozca
+    (function() {
+        var script = document.createElement('script');
+        script.id = "prodId";
+        script.type = "text/javascript";
+        // El parámetro &_ rándom obliga a Wolkvox a generar una sesión limpia
+        script.src = "https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI=" + "&_=" + Math.random();
+        script.async = true;
+        document.body.appendChild(script);
+    })();
 </script>
 </body>
 </html>
