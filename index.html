@@ -2,50 +2,16 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chat Wolkvox - Operación Continua</title>
+  <title>Chat Wolkvox</title>
+  <!-- Opcional pero recomendado -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
-    #chat-container { width: 100%; height: 100%; }
-  </style>
 </head>
 <body>
-
-<div id="chat-container"></div>
-
-<script type="text/javascript">
-  (function() {
-    // 1. LIMPIEZA DE NUESTRO LADO
-    localStorage.clear();
-    sessionStorage.clear();
-
-    const container = document.getElementById('chat-container');
-
-    // 2. LA SOLUCIÓN TÉCNICA: Cache Busting Agresivo
-    // Al cambiar el ID del script y la URL cada vez, forzamos al navegador 
-    // a tratar el chat como una instancia nueva, ignorando parcialmente el storage previo.
-    var script = document.createElement('script');
-    var ts = new Date().getTime();
-    script.id = "prodId_" + ts; // ID dinámico
-    script.type = "text/javascript";
-    
-    // Agregamos un token único (?nocache=...) que obliga a Wolkvox a re-identificar la conexión
-    script.src = "https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI=&nocache=" + ts;
-    script.async = true;
-
-    container.appendChild(script);
-
-    // 3. DETECTOR DE PANTALLA BLANCA (Rescue Mode)
-    // Si en 8 segundos no hay un iframe de chat, es que el "Recordarme" rompió la carga.
-    // Refrescamos automáticamente para limpiar el estado del navegador.
-    setTimeout(function() {
-      if (!document.querySelector('iframe')) {
-        console.warn("Fallo de carga detectado por persistencia de datos. Reiniciando...");
-        window.location.href = window.location.pathname + "?refresh=" + new Date().getTime();
-      }
-    }, 8000);
-  })();
+<!-- START CHATBOX WOLKVOX -->
+<script
+  id="prodId"
+  type="text/javascript"
+  src="https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI="
+  async>
 </script>
-
-</body>
-</html>
+<!-- END CHATBOX WOLKVOX -->
