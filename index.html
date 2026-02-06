@@ -2,50 +2,49 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chat Wolkvox - Fix</title>
+  <title>Chat Wolkvox - Operación Continua</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+    #chat-container { width: 100%; height: 100%; }
+  </style>
 </head>
 <body>
 
+<div id="chat-container"></div>
+
 <script type="text/javascript">
   (function() {
-    // 1. LIMPIEZA TOTAL INMEDIATA
+    // 1. LIMPIEZA DE NUESTRO LADO
     localStorage.clear();
     sessionStorage.clear();
-    
-    // Limpieza de cookies de tu host
-    document.cookie.split(";").forEach(function(c) { 
-      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-    });
 
-    console.log("Memoria limpia. Iniciando carga de script...");
+    const container = document.getElementById('chat-container');
 
-    // 2. CARGA MANUAL DEL SCRIPT (Sin async para evitar que use caché vieja)
-    var wolkvoxScript = document.createElement('script');
-    wolkvoxScript.id = "prodId";
-    wolkvoxScript.type = "text/javascript";
+    // 2. LA SOLUCIÓN TÉCNICA: Cache Busting Agresivo
+    // Al cambiar el ID del script y la URL cada vez, forzamos al navegador 
+    // a tratar el chat como una instancia nueva, ignorando parcialmente el storage previo.
+    var script = document.createElement('script');
+    var ts = new Date().getTime();
+    script.id = "prodId_" + ts; // ID dinámico
+    script.type = "text/javascript";
     
-    // Agregamos un número aleatorio al final de la URL (?v=...) 
-    // Esto obliga a Edge y Chrome a descargar el script de nuevo y no usar el de la sesión anterior
-    var antiCache = new Date().getTime();
-    wolkvoxScript.src = "https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI=&v=" + antiCache;
-    
-    // Insertamos el script en el cuerpo
-    document.body.appendChild(wolkvoxScript);
+    // Agregamos un token único (?nocache=...) que obliga a Wolkvox a re-identificar la conexión
+    script.src = "https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI=&nocache=" + ts;
+    script.async = true;
+
+    container.appendChild(script);
+
+    // 3. DETECTOR DE PANTALLA BLANCA (Rescue Mode)
+    // Si en 8 segundos no hay un iframe de chat, es que el "Recordarme" rompió la carga.
+    // Refrescamos automáticamente para limpiar el estado del navegador.
+    setTimeout(function() {
+      if (!document.querySelector('iframe')) {
+        console.warn("Fallo de carga detectado por persistencia de datos. Reiniciando...");
+        window.location.href = window.location.pathname + "?refresh=" + new Date().getTime();
+      }
+    }, 8000);
   })();
-</script>
-
-<script type="text/javascript">
-  // 3. MONITOR DE RESCATE
-  // Si en 12 segundos el chat no ha cargado nada (pantalla blanca),
-  // significa que la sesión del servidor sigue "pegada". Forzamos un refresh.
-  setTimeout(function() {
-    var iframeChat = document.querySelector('iframe');
-    if (!iframeChat) {
-       console.log("Detectada pantalla blanca persistente. Refrescando...");
-       window.location.reload();
-    }
-  }, 12000);
 </script>
 
 </body>
