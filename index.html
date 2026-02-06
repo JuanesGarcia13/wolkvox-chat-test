@@ -4,65 +4,45 @@
   <meta charset="UTF-8">
   <title>Chat Wolkvox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
   <script type="text/javascript">
-    // 1. Limpieza radical al cargar
+    // Limpieza inmediata antes de cargar el script
     (function() {
       try {
         localStorage.clear();
         sessionStorage.clear();
+        // Limpiamos cookies propias para evitar conflictos de sesión
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
       } catch (e) {
-        console.log("Error limpiando storage:", e);
+        console.log("Limpieza inicial ejecutada");
       }
     })();
-
-    // 2. Función de rescate para el usuario
-    function reiniciarChat() {
-      localStorage.clear();
-      sessionStorage.clear();
-      // Forzamos recarga ignorando la caché del navegador
-      window.location.reload(true);
-    }
   </script>
-  <style>
-    body { margin: 0; font-family: sans-serif; }
-    /* Botón discreto que solo se usa si el chat falla */
-    #btn-reset {
-      position: fixed;
-      top: 5px;
-      right: 5px;
-      z-index: 10000;
-      background: #0078d4;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-  </style>
 </head>
 <body>
 
-  <button id="btn-reset" onclick="reiniciarChat()">Nuevo Chat / Refrescar</button>
-
-  <script
-    id="prodId"
-    type="text/javascript"
-    src="https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI="
-    async>
-  </script>
-  <script type="text/javascript">
-    // 3. Sistema de auto-recuperación
-    // Si después de 12 segundos no hay iframe (pantalla blanca), refrescamos
-    setTimeout(function() {
-      const iframe = document.querySelector('iframe');
-      if (!iframe) {
-        console.log("Chat no cargó correctamente. Reintentando...");
-        // Opcional: reiniciarChat(); // Descomenta esta línea para que sea automático
-      }
-    }, 12000);
-  </script>
+<script
+  id="prodId"
+  type="text/javascript"
+  src="https://widget01.wolkvox.com/chat/?prodId=c3VtbWEtbWFjLWNhLjIzNjI="
+  async>
+</script>
+<script type="text/javascript">
+  // AUTO-REFRESCO SI QUEDA EN BLANCO
+  // Si pasan 12 segundos y no se ha creado el iframe del chat, 
+  // es probable que el "Recordarme" haya bloqueado la sesión. 
+  // En ese caso, la página se refresca sola una vez.
+  setTimeout(function() {
+    var chatPresente = document.querySelector('iframe');
+    if (!chatPresente) {
+      console.log("Detectada pantalla en blanco, refrescando para intentar nueva sesión...");
+      // Solo refrescamos si no hay una interacción activa detectada
+      window.location.reload();
+    }
+  }, 12000);
+</script>
 
 </body>
 </html>
