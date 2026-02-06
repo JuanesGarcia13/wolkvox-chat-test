@@ -4,22 +4,41 @@
   <meta charset="UTF-8">
   <title>Chat Wolkvox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
   <script type="text/javascript">
-    // 1. LIMPIEZA TOTAL AL CARGAR
+    // 1. Limpieza preventiva antes de que el script cargue
     (function() {
-      try {
-        localStorage.clear();
-        sessionStorage.clear();
-        // Borramos cookies para que no reconozca la sesión anterior
-        document.cookie.split(";").forEach(function(c) { 
-          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-        });
-      } catch (e) {}
+      localStorage.clear();
+      sessionStorage.clear();
     })();
+
+    // 2. Función para forzar reinicio si se queda en blanco
+    function forzarNuevoChat() {
+      // Borramos caché y recargamos la página completamente
+      localStorage.clear();
+      location.reload(true); 
+    }
   </script>
+  <style>
+    /* Estilo para un botón de auxilio sutil si el chat no carga */
+    #btn-reset {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      z-index: 999;
+      font-size: 12px;
+      background: #f1f1f1;
+      border: 1px solid #ccc;
+      padding: 5px;
+      cursor: pointer;
+      border-radius: 4px;
+      opacity: 0.7;
+    }
+    #btn-reset:hover { opacity: 1; }
+  </style>
 </head>
 <body>
+
+<button id="btn-reset" onclick="forzarNuevoChat()">¿Chat en blanco? Clic aquí</button>
 
 <script
   id="prodId"
@@ -28,22 +47,16 @@
   async>
 </script>
 <script type="text/javascript">
-  // 2. DETECTOR DE ESTADO "CONGELADO"
-  // Si pasan 7 segundos y no hay rastro del chat, refrescamos.
-  // 7 segundos es suficiente para que cargue, si tarda más es que se quedó en blanco.
+  // 3. Auto-detección de fallo
+  // Si pasan 10 segundos y el chat no ha inyectado su contenido, 
+  // avisamos al usuario o limpiamos automáticamente.
   setTimeout(function() {
-    var iframeChat = document.querySelector('iframe');
-    if (!iframeChat) {
-      window.location.reload();
+    var chatVivo = document.querySelector('iframe') || document.querySelector('.wolkvox-chat-container');
+    if (!chatVivo) {
+      console.warn("El chat parece bloqueado por cookies de sesión.");
+      // Opcional: podrías ejecutar forzarNuevoChat() aquí automáticamente
     }
-  }, 7000);
-
-  // 3. LIMPIEZA CÍCLICA (Cada 30 segundos limpia el storage en segundo plano)
-  // Esto ayuda a que, si el usuario cierra el chat, los datos de "Recordarme" 
-  // que se filtran a nuestro dominio se borren solos.
-  setInterval(function() {
-    localStorage.clear();
-  }, 30000);
+  }, 10000);
 </script>
 
 </body>
