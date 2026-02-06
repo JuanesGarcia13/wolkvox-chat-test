@@ -6,18 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script type="text/javascript">
-    // Limpieza inmediata antes de cargar el script
+    // 1. LIMPIEZA TOTAL AL CARGAR
     (function() {
       try {
         localStorage.clear();
         sessionStorage.clear();
-        // Limpiamos cookies propias para evitar conflictos de sesión
+        // Borramos cookies para que no reconozca la sesión anterior
         document.cookie.split(";").forEach(function(c) { 
           document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
         });
-      } catch (e) {
-        console.log("Limpieza inicial ejecutada");
-      }
+      } catch (e) {}
     })();
   </script>
 </head>
@@ -30,18 +28,22 @@
   async>
 </script>
 <script type="text/javascript">
-  // AUTO-REFRESCO SI QUEDA EN BLANCO
-  // Si pasan 12 segundos y no se ha creado el iframe del chat, 
-  // es probable que el "Recordarme" haya bloqueado la sesión. 
-  // En ese caso, la página se refresca sola una vez.
+  // 2. DETECTOR DE ESTADO "CONGELADO"
+  // Si pasan 7 segundos y no hay rastro del chat, refrescamos.
+  // 7 segundos es suficiente para que cargue, si tarda más es que se quedó en blanco.
   setTimeout(function() {
-    var chatPresente = document.querySelector('iframe');
-    if (!chatPresente) {
-      console.log("Detectada pantalla en blanco, refrescando para intentar nueva sesión...");
-      // Solo refrescamos si no hay una interacción activa detectada
+    var iframeChat = document.querySelector('iframe');
+    if (!iframeChat) {
       window.location.reload();
     }
-  }, 12000);
+  }, 7000);
+
+  // 3. LIMPIEZA CÍCLICA (Cada 30 segundos limpia el storage en segundo plano)
+  // Esto ayuda a que, si el usuario cierra el chat, los datos de "Recordarme" 
+  // que se filtran a nuestro dominio se borren solos.
+  setInterval(function() {
+    localStorage.clear();
+  }, 30000);
 </script>
 
 </body>
